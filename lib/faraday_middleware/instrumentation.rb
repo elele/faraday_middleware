@@ -22,9 +22,12 @@ module FaradayMiddleware
     end
 
     def call(env)
-      ::ActiveSupport::Notifications.instrument(@name, env) do
-        @app.call(env)
-      end
+      started_at         = Time.now
+      app                = @app.call(env)
+      ended_at           = Time.now
+      duration           = ended_at - started_at
+      app.env[:duration] = duration
+      ::ActiveSupport::Notifications.instrument(@name, env: app.env, duration: duration)
     end
   end
 end
